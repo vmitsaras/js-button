@@ -1,0 +1,26 @@
+{
+  "name": "js-button",
+  "title": "js-Button",
+  "version": "0.1.0",
+  "description": "jQuery Plugin for progressively enhanced Buttons",
+  "main": "button.js",
+  "keywords": [
+    "button"
+  ],
+  "author": {
+    "name": "Vasileios Mitsaras",
+    "twitter": "vmitsaras",
+    "email": "github@vasilis.co",
+    "url": "http://vasilis.co"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "bower": "^1.7.7",
+    "grunt": "^0.4.5",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-concat": "^1.0.0",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-uglify": "^1.0.0",
+    "grunt-contrib-watch": "^0.6.1"
+  }
+}
