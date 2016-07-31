@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>js-Button Test Suite</title>
+	<!-- Load local jQuery, removing access to $ (use jQuery, not $). -->
+	<script src="../bower_components/jquery/dist/jquery.js"></script>
+	<script>jQuery.noConflict()</script>
+	<!-- Load local QUnit (grunt requires v1.0.0 or newer). -->
+	<link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css">
+	<link rel="stylesheet" href="../dist/js-button.css">
+	<script src="../node_modules/qunitjs/qunit/qunit.js"></script>
+	<!-- Load local lib and tests. -->
+	<script src="../dist/js-button.js"></script>
+	<script src="../dist/test/tests.js"></script>
+</head>
+<body>
+	<div id="qunit"></div>
+	<div id="qunit-fixture">
+	<a class="js-button" href="#">Button</a>
+	</div>
+</body>
+</html>

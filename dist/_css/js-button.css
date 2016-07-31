@@ -1,0 +1,71 @@
+/**
+ * https://github.com/suitcss/components-button
+ */
+/**
+ * 1. Normalize `box-sizing` across all elements that this component could be
+ *    applied to.
+ * 2. Inherit text color from ancestor.
+ * 3. Inherit font styles from ancestor.
+ * 4. Prevent button text from being selectable.
+ */
+/* line 13, ../../src/js-button.scss */
+.c-button {
+  background: transparent;
+  border-color: currentcolor;
+  border-style: solid;
+  border-width: 1px;
+  box-sizing: border-box;
+  /* 1 */
+  color: inherit;
+  /* 2 */
+  cursor: pointer;
+  display: inline-block;
+  font: inherit;
+  /* 3 */
+  margin: 0;
+  padding: 0.4em 0.75em;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  /* 4 */
+  overflow: hidden;
+}
+
+/**
+ * Remove excess padding and border in Firefox 4+
+ */
+/* line 36, ../../src/js-button.scss */
+.c-button::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/**
+ * Work around a Firefox/IE bug where the transparent `button` background
+ * results in a loss of the default `button` focus styles.
+ */
+/* line 46, ../../src/js-button.scss */
+.c-button:focus {
+  outline: 1px dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+}
+
+/**
+ * UI states
+ */
+/* line 55, ../../src/js-button.scss */
+.c-button:hover,
+.c-button:focus,
+.c-button:active {
+  text-decoration: none;
+}
+
+/* line 61, ../../src/js-button.scss */
+.c-button:disabled,
+.c-button.is-disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/*# sourceMappingURL=js-button.css.map */
