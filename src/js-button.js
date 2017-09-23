@@ -50,7 +50,9 @@
 			options.label = this.$element.html();
 		}
 
-		this.$buttonText = $( '<span></span>' ).html( options.label ).appendTo(this.$element.empty());
+		if ( options.wrapText ) {
+			this.$buttonText = $( '<span></span>' ).html( options.label ).appendTo(this.$element.empty());
+		}
 
 		if ( options.icon ) {
 
@@ -131,6 +133,7 @@
 		modifiers: null,
 		controls: null,
 		textActive: null,
+		wrapText: true,
 		hideText: false,
 		hideTitle: false,
 		icon: null,
