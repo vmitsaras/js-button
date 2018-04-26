@@ -1,10 +1,10 @@
 /* global jQuery:true */
 
-(function( w, $ ){
+(function( window, $ ){
 	"use strict";
 	var name = "button",
 		componentName = name + "-component",
-		utils = w.utils,
+		utils = window.utils,
 		cl = {
 			iconOnly: "icon-only",
 			withIcon: "icon",
@@ -12,9 +12,9 @@
 			showHide: "visible-on-active"
 		};
 
-	w.componentNamespace = w.componentNamespace || {};
+	window.componentNamespace = window.componentNamespace || {};
 
-	var Button = w.componentNamespace.Button = function( element, options ){
+	var Button = window.componentNamespace.Button = function( element, options ){
 		if( !element ){
 			throw new Error( "Element required to initialize object" );
 		}
@@ -107,9 +107,6 @@
 		if ( !this.hasTitle && options.hideText && !options.hideTitle ) {
 			this.$element.attr('title',this.$element.text());
 		}
-		if ( options.ripple && w.componentNamespace.Ripple ) {
-			new w.componentNamespace.Ripple( this.element ).init();
-		}
 		this.$element.trigger( "create." + name );
 	};
 
@@ -164,8 +161,7 @@
 		iconFamily: "o-icon",
 		iconPosition: null,
 		pressed: false,
-		expanded: false,
-		ripple: false
+		expanded: false
 	};
 
 	Button.defaults = Button.prototype.defaults;
@@ -180,7 +176,7 @@
 
 	$.fn[ pluginName ] = function(){
 		return this.each( function(){
-			new w.componentNamespace.Button( this ).init();
+			new window.componentNamespace.Button( this ).init();
 		});
 	};
 
