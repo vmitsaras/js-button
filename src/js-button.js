@@ -43,9 +43,9 @@
 
 	Button.prototype._create = function(){
 		var options = this.options,
-			buttonClasses = [options.baseClass],
 			buttonTextClasses = [options.baseClass + '__text'];
 
+		this._buttonClasses = [options.baseClass];
 		if ( options.label === null ) {
 			options.label = this.$element.html();
 		}
@@ -71,7 +71,7 @@
 		}
 
 		if ( options.modifiers ) {
-			utils.cssModifiers(options.modifiers,buttonClasses,options.baseClass);
+			utils.cssModifiers(options.modifiers,this._buttonClasses,options.baseClass);
 		}
 		if ( options.wrapText ) {
 			this.$buttonText.addClass( buttonTextClasses.join( " " ) );
@@ -80,7 +80,7 @@
 		if ( options.textActive && options.wrapText ) {
 			options.toggle = true;
 			buttonTextClasses.push( utils.createModifierClass(options.baseClass+'__text',cl.showHide) );
-			buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
+			this._buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
 
 			this.$buttonTextActive = $( '<span></span>' )
 				.addClass( buttonTextClasses.join( " " ) )
@@ -89,7 +89,7 @@
 			this.$element.attr('aria-live','polite');
 		}
 
-		this.$element.addClass( buttonClasses.join( " " ) );
+		this.$element.addClass( this._buttonClasses.join( " " ) );
 
 		if ( options.role) {
 			this.$element.attr( "role", options.role );
@@ -125,6 +125,28 @@
 
 	Button.prototype.controls = function(el){
 		this.$element.attr( "aria-controls", el );
+	};
+
+	Button.prototype.destroy = function(el){
+		this.$element
+			.removeData(componentName)
+			.removeAttr('role')
+			.removeAttr('aria-pressed')
+			.removeAttr('aria-expanded')
+			.removeAttr('aria-controls')
+			.removeClass( this._buttonClasses.join( " " ) )
+			.off("."+name);
+		if ( this.options.icon ) {
+			this.$element.find('[class^="'+this.options.iconFamily+'"]').remove();
+		}
+
+		if ( options.wrapText ) {
+			var btnHtml = this.$buttonText.html();
+			this.$element.empty().html(btnHtml);
+		}
+
+		this.element = null;
+		this.$element = null;
 	};
 
 	Button.prototype.defaults = {
