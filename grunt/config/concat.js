@@ -6,8 +6,7 @@ module.exports = {
 	},
 	pkgd: {
 		src: [
-			"bower_components/js-utilities/utils.js",
-			"bower_components/js-ripple/dist/_js/js-ripple.js",
+			"node_modules/js-utilities/utils.js",
 			"src/<%= pkg.name %>.js"
 		]
 	}

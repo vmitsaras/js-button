@@ -1,8 +1,7 @@
-/* global Modernizr:true */
-;(function( w ){
+;(function( window ){
 	"use strict";
 
-	var utils = {};
+	var utils = window.utils || {};
 
 	utils.classes = {
 		hiddenVisually: "u-hidden-visually",
@@ -12,6 +11,7 @@
 		isOpen: "is-open",
 		isClicked: "is-clicked",
 		isAnimating: "is-animating",
+		isVisible: "is-visible",
 		hidden: "u-hidden"
 	};
 
@@ -34,10 +34,6 @@
 		UP: 38
 	};
 
-	/**
-	 * a11yclick
-	 * Slightly modified from: http://www.karlgroves.com/2014/11/24/ridiculously-easy-trick-for-keyboard-accessibility/
-	 */
 	utils.a11yclick = function(event) {
 		var code = event.charCode || event.keyCode,
 			type = event.type;
@@ -53,24 +49,33 @@
 		}
 	};
 
-	utils.doc = w.document;
-	utils.supportTransition = Modernizr.csstransitions;
-	utils.supportAnimations = Modernizr.cssanimations;
-	utils.transEndEventNames = {
-		'WebkitTransition'	: 'webkitTransitionEnd',
-		'MozTransition'		: 'transitionend',
-		'OTransition'		: 'oTransitionEnd',
-		'msTransition'		: 'MSTransitionEnd',
-		'transition'		: 'transitionend'
+	utils.a11yclickBind = function(el, callback, name) {
+		el.on("click." + name + " keydown." + name,function(event){
+			if ( utils.a11yclick(event)) {
+				event.preventDefault(event);
+				if( callback && typeof callback === 'function' ) { callback.call(); }
+				el.trigger('clicked.'+name);
+			}
+		});
 	};
-	utils.animEndEventNames = {
-		'WebkitAnimation' : 'webkitAnimationEnd',
-		'OAnimation' : 'oAnimationEnd',
-		'msAnimation' : 'MSAnimationEnd',
-		'animation' : 'animationend'
+
+	utils.supportTransition = ('transition' in document.documentElement.style) || ('WebkitTransition' in document.documentElement.style);
+
+	utils.whichTransitionEvent = function () {
+		var el = document.createElement('fakeelement'),
+			transitions = {
+				'transition': 'transitionend',
+				'WebkitTransition': 'webkitTransitionEnd'
+			};
+
+		for (var t in transitions) {
+			if (el.style[t] !== undefined) {
+				return transitions[t];
+			}
+		}
 	};
-	utils.transEndEventName = utils.transEndEventNames[Modernizr.prefixed('transition')];
-	utils.animEndEventName = utils.animEndEventNames[Modernizr.prefixed('animation')];
+
+	utils.transEndEventName = utils.whichTransitionEvent();
 
 	utils.onEndTransition = function( el, callback ) {
 		var onEndCallbackFn = function( ev ) {
@@ -82,22 +87,6 @@
 		};
 		if( utils.supportTransition ) {
 			el.addEventListener( utils.transEndEventName, onEndCallbackFn );
-		}
-		else {
-			onEndCallbackFn();
-		}
-	};
-
-	utils.onEndAnimation = function( el, callback ) {
-		var onEndCallbackFn = function( ev ) {
-			if( utils.supportAnimations ) {
-				if( ev.target != this ) return;
-				this.removeEventListener( utils.animEndEventName, onEndCallbackFn );
-			}
-			if( callback && typeof callback === 'function' ) { callback.call(); }
-		};
-		if( utils.supportAnimations ) {
-			el.addEventListener( utils.animEndEventName, onEndCallbackFn );
 		}
 		else {
 			onEndCallbackFn();
@@ -116,9 +105,9 @@
 	};
 
 	utils.getMetaOptions = function( el, name, metadata ){
-		var dataAttr = 'data-' + name;
-		var dataOptionsAttr = dataAttr + '-options';
-		var attr = el.getAttribute( dataAttr ) || el.getAttribute( dataOptionsAttr );
+		var dataAttr = 'data-' + name,
+			dataOptionsAttr = dataAttr + '-options',
+			attr = el.getAttribute( dataAttr ) || el.getAttribute( dataOptionsAttr );
 		try {
 			return attr && JSON.parse( attr ) || {};
 		} catch ( error ) {
@@ -130,147 +119,16 @@
 		}
 	};
 
-	// expose global utils
-	w.utils = utils;
+	window.utils = utils;
 
 })(this);
 
 
-(function( w, $ ){
-	"use strict";
-
-	var name = "ripple",
-		componentName = name + "-component",
-		utils = w.utils;
-
-	w.componentNamespace = w.componentNamespace || {};
-
-	var Ripple = w.componentNamespace.Ripple = function( element, options ){
-		if( !element ){
-			throw new Error( "Element required to initialize object" );
-		}
-		// assign element for method events
-		this.element = element;
-		this.$element = $( element );
-		// Options
-		this.options = options = options || {};
-		this.metadata = utils.getMetaOptions( this.element, name );
-		this.options = $.extend( {}, this.defaults, this.metadata, options );
-	};
-
-
-	Ripple.prototype.init = function(){
-
-		if ( this.$element.data( componentName ) ) {
-			return;
-		}
-
-		this.$element.data( componentName, this );
-		if( !utils.supportAnimations ) {
-			return;
-		}
-		this.isAnimating = false;
-		this.$element.trigger( "beforecreate." + name );
-		this._create();
-		this.$element.bind('mousedown', this._animate.bind(this) );
-	};
-
-	Ripple.prototype.refresh = function(){
-		var self = this,
-			d = Math.max(self.$element.outerWidth(), self.$element.outerHeight())/this.options.widthDivider;
-		this.$ripple.css({height: d, width: d});
-		this.$element.trigger( "refreshed." + name );
-	};
-
-	Ripple.prototype._create = function(){
-		var self = this,
-			options = this.options,
-			rippleClasses = [options.baseClass];
-
-		if ( options.modifiers ) {
-			utils.cssModifiers(options.modifiers,rippleClasses,options.baseClass);
-		}
-
-		this.$ripple = $( '<span></span>' ).addClass( rippleClasses.join( " " ) ).appendTo(this.$element);
-		this.refresh();
-		this.$element.trigger( "create." + name );
-		$( w.document ).on( "refresh." + name, function(){
-			self.refresh();
-		});
-	};
-
-	Ripple.prototype._animate = function(){
-		var self = this,x,y,point;
-		if( this.isAnimating ) {
-			return;
-		}
-		this.isAnimating = true;
-		// record the x for threshold calculations
-		point = this._getPoint( event );
-		this.downX = point.x;
-		this.downY = point.y;
-
-		x = this.downX - this.$element.offset().left - this.$ripple.width()/2;
-		y = this.downY - this.$element.offset().top - this.$ripple.height()/2;
-
-		this.$ripple.css({top: y+'px', left: x+'px'}).addClass(utils.classes.isAnimating);
-		this.$element.addClass(utils.classes.isClicked);
-
-		utils.onEndAnimation( this.$ripple[0], function() {
-			self.$element.removeClass(utils.classes.isClicked);
-			self.$ripple.removeClass(utils.classes.isAnimating);
-			self.isAnimating = false;
-		} );
-	};
-
-	Ripple.prototype._getPoint = function( event ) {
-		var touch = event.touches || (event.originalEvent && event.originalEvent.touches);
-		if( touch ){
-			return {
-				x: touch[0].pageX,
-				y: touch[0].pageY
-			};
-		}
-
-		return {
-			x: event.pageX || event.clientX,
-			y: event.pageY || event.clientY
-		};
-	};
-
-	Ripple.prototype.defaults = {
-		baseClass:"o-ripple",
-		modifiers: null,
-		widthDivider: 4
-	};
-
-	Ripple.defaults = Ripple.prototype.defaults;
-
-})(this, jQuery);
-
-(function( w, $ ){
-	"use strict";
-
-	var pluginName = "ripple",
-		initSelector = ".js-" + pluginName;
-
-	$.fn[ pluginName ] = function(){
-		return this.each( function(){
-			new w.componentNamespace.Ripple( this ).init();
-		});
-	};
-
-	// auto-init on enhance (which is called on domready)
-	$( document ).bind( "enhance", function( e ){
-		$( $( e.target ).is( initSelector ) && e.target ).add( initSelector, e.target ).filter( initSelector )[ pluginName ]();
-	});
-})(this, jQuery);
-
-(function( w, $ ){
+(function( window, $ ){
 	"use strict";
 	var name = "button",
 		componentName = name + "-component",
-		utils = w.utils,
+		utils = window.utils,
 		cl = {
 			iconOnly: "icon-only",
 			withIcon: "icon",
@@ -278,9 +136,9 @@
 			showHide: "visible-on-active"
 		};
 
-	w.componentNamespace = w.componentNamespace || {};
+	window.componentNamespace = window.componentNamespace || {};
 
-	var Button = w.componentNamespace.Button = function( element, options ){
+	var Button = window.componentNamespace.Button = function( element, options ){
 		if( !element ){
 			throw new Error( "Element required to initialize object" );
 		}
@@ -303,15 +161,16 @@
 		this.hasTitle = !!this.$element.attr( "title" );
 		this.$element.trigger( "beforecreate." + name );
 		this.isPressed = false;
+		this.isExpanded = false;
 		this._create();
 
 	};
 
 	Button.prototype._create = function(){
 		var options = this.options,
-			buttonClasses = [options.baseClass],
 			buttonTextClasses = [options.baseClass + '__text'];
 
+		this._buttonClasses = [options.baseClass];
 		if ( options.label === null ) {
 			options.label = this.$element.html();
 		}
@@ -323,21 +182,21 @@
 		if ( options.icon ) {
 
 			this.$buttonIcon = $( "<span class='"+ options.iconFamily +' ' + utils.createModifierClass(options.iconFamily, options.icon)+"'></span>" ).prependTo(this.$element);
-			buttonClasses.push( utils.createModifierClass(options.baseClass,cl.withIcon) );
+			this._buttonClasses.push( utils.createModifierClass(options.baseClass,cl.withIcon) );
 
 			if ( options.iconActive ) {
 				options.toggle = true;
 				this.$buttonIconActive = $( "<span class='"+ options.iconFamily  + ' ' + utils.createModifierClass(options.iconFamily, options.iconActive)+ ' ' +utils.createModifierClass(options.iconFamily, cl.showHide)+ "'></span>" ).insertAfter(this.$buttonIcon);
-				buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
+				this._buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
 			}
 			if ( options.hideText ) {
 				buttonTextClasses.push(utils.classes.hiddenVisually );
-				buttonClasses.push( utils.createModifierClass(options.baseClass,cl.iconOnly) );
+				this._buttonClasses.push( utils.createModifierClass(options.baseClass,cl.iconOnly) );
 			}
 		}
 
 		if ( options.modifiers ) {
-			utils.cssModifiers(options.modifiers,buttonClasses,options.baseClass);
+			utils.cssModifiers(options.modifiers,this._buttonClasses,options.baseClass);
 		}
 		if ( options.wrapText ) {
 			this.$buttonText.addClass( buttonTextClasses.join( " " ) );
@@ -346,7 +205,7 @@
 		if ( options.textActive && options.wrapText ) {
 			options.toggle = true;
 			buttonTextClasses.push( utils.createModifierClass(options.baseClass+'__text',cl.showHide) );
-			buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
+			this._buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
 
 			this.$buttonTextActive = $( '<span></span>' )
 				.addClass( buttonTextClasses.join( " " ) )
@@ -355,7 +214,7 @@
 			this.$element.attr('aria-live','polite');
 		}
 
-		this.$element.addClass( buttonClasses.join( " " ) );
+		this.$element.addClass( this._buttonClasses.join( " " ) );
 
 		if ( options.role) {
 			this.$element.attr( "role", options.role );
@@ -373,9 +232,6 @@
 		if ( !this.hasTitle && options.hideText && !options.hideTitle ) {
 			this.$element.attr('title',this.$element.text());
 		}
-		if ( options.ripple && w.componentNamespace.Ripple ) {
-			new w.componentNamespace.Ripple( this.element ).init();
-		}
 		this.$element.trigger( "create." + name );
 	};
 
@@ -385,12 +241,37 @@
 	};
 
 	Button.prototype._isExpanded = function(state){
-		this._isPressed(state);
-		this.$element.attr( "aria-expanded", state );
+		this.isExpanded = state;
+		this.$element.attr( "aria-expanded", state )[ state ? "addClass" : "removeClass" ](utils.classes.isActive);
 	};
 
 	Button.prototype.controls = function(el){
 		this.$element.attr( "aria-controls", el );
+	};
+
+	Button.prototype.destroy = function(){
+		var options = this.options;
+
+		this.$element
+			.removeData(componentName)
+			.removeAttr('role')
+			.removeAttr('aria-pressed')
+			.removeAttr('aria-expanded')
+			.removeAttr('aria-controls')
+			.removeClass( this._buttonClasses.join( " " ) )
+			.removeClass( utils.classes.isActive)
+			.off("."+name);
+		if ( this.options.icon ) {
+			this.$element.find('[class^="'+this.options.iconFamily+'"]').remove();
+		}
+
+		if ( options.wrapText ) {
+			var btnHtml = this.$buttonText.html();
+			this.$element.empty().html(btnHtml);
+		}
+
+		this.element = null;
+		this.$element = null;
 	};
 
 	Button.prototype.defaults = {
@@ -408,8 +289,7 @@
 		iconFamily: "o-icon",
 		iconPosition: null,
 		pressed: false,
-		expanded: false,
-		ripple: false
+		expanded: false
 	};
 
 	Button.defaults = Button.prototype.defaults;
@@ -424,7 +304,7 @@
 
 	$.fn[ pluginName ] = function(){
 		return this.each( function(){
-			new w.componentNamespace.Button( this ).init();
+			new window.componentNamespace.Button( this ).init();
 		});
 	};
 
