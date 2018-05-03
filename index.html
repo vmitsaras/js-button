@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>js-Button</title>
+	<script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="dist/_css/js-button.css">
+	<script src="dist/_js/js-button.pkgd.js"></script>
+	<script>
+	$( function(){
+	    var buttons;
+		$( document ).on( "create.button", function( e ){
+			var dataBtn = $( e.target ).closest( '.js-button' ).data('button-component');
+			console.log(dataBtn);
+            $('.js-destroy').on('click', function () {
+                dataBtn.destroy();
+                console.log(dataBtn);
+            });
+		} );
+
+		$( '#pressed' ).on( "create.button", function( e ){
+			var btn = $( this ).data('button-component');
+			btn._isExpanded(true);
+		});
+		$( document ).trigger( "enhance" );
+
+	});
+	</script>
+</head>
+<body>
+	<div class="header">
+		
+		<a class="js-button" href="#non" title="like button" id="pressed">pressed</a>
+		<a class="js-button" href="#non" data-button-options='{"expanded":"true"}' title="like button" id="expanded">expanded</a>
+		<a class="js-button" href="#non"
+		   data-button-options='{"pressed":"true"}'
+		>Like</a><a class="js-button" href="#non"
+                    data-button-options='{
+							  "expanded":"true",
+							  "textActive":"Liked",
+							  "iconActive":"liked",
+							  "icon":"like",
+                              "modifiers":"collapsible"}' id="presseds">Like</a>
+		<button class="js-button js-destroy">Destroy Buttons</button>
+	</div>
+</body>
+</html>

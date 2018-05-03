@@ -1,8 +1,8 @@
-(function( w, $ ){
+(function( window, $ ){
 	"use strict";
 	var name = "button",
 		componentName = name + "-component",
-		utils = w.utils,
+		utils = window.utils,
 		cl = {
 			iconOnly: "icon-only",
 			withIcon: "icon",
@@ -10,9 +10,9 @@
 			showHide: "visible-on-active"
 		};
 
-	w.componentNamespace = w.componentNamespace || {};
+	window.componentNamespace = window.componentNamespace || {};
 
-	var Button = w.componentNamespace.Button = function( element, options ){
+	var Button = window.componentNamespace.Button = function( element, options ){
 		if( !element ){
 			throw new Error( "Element required to initialize object" );
 		}
@@ -35,15 +35,16 @@
 		this.hasTitle = !!this.$element.attr( "title" );
 		this.$element.trigger( "beforecreate." + name );
 		this.isPressed = false;
+		this.isExpanded = false;
 		this._create();
 
 	};
 
 	Button.prototype._create = function(){
 		var options = this.options,
-			buttonClasses = [options.baseClass],
 			buttonTextClasses = [options.baseClass + '__text'];
 
+		this._buttonClasses = [options.baseClass];
 		if ( options.label === null ) {
 			options.label = this.$element.html();
 		}
@@ -55,21 +56,21 @@
 		if ( options.icon ) {
 
 			this.$buttonIcon = $( "<span class='"+ options.iconFamily +' ' + utils.createModifierClass(options.iconFamily, options.icon)+"'></span>" ).prependTo(this.$element);
-			buttonClasses.push( utils.createModifierClass(options.baseClass,cl.withIcon) );
+			this._buttonClasses.push( utils.createModifierClass(options.baseClass,cl.withIcon) );
 
 			if ( options.iconActive ) {
 				options.toggle = true;
 				this.$buttonIconActive = $( "<span class='"+ options.iconFamily  + ' ' + utils.createModifierClass(options.iconFamily, options.iconActive)+ ' ' +utils.createModifierClass(options.iconFamily, cl.showHide)+ "'></span>" ).insertAfter(this.$buttonIcon);
-				buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
+				this._buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
 			}
 			if ( options.hideText ) {
 				buttonTextClasses.push(utils.classes.hiddenVisually );
-				buttonClasses.push( utils.createModifierClass(options.baseClass,cl.iconOnly) );
+				this._buttonClasses.push( utils.createModifierClass(options.baseClass,cl.iconOnly) );
 			}
 		}
 
 		if ( options.modifiers ) {
-			utils.cssModifiers(options.modifiers,buttonClasses,options.baseClass);
+			utils.cssModifiers(options.modifiers,this._buttonClasses,options.baseClass);
 		}
 		if ( options.wrapText ) {
 			this.$buttonText.addClass( buttonTextClasses.join( " " ) );
@@ -78,7 +79,7 @@
 		if ( options.textActive && options.wrapText ) {
 			options.toggle = true;
 			buttonTextClasses.push( utils.createModifierClass(options.baseClass+'__text',cl.showHide) );
-			buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
+			this._buttonClasses.push( utils.createModifierClass(options.baseClass,cl.toggleState) );
 
 			this.$buttonTextActive = $( '<span></span>' )
 				.addClass( buttonTextClasses.join( " " ) )
@@ -87,7 +88,7 @@
 			this.$element.attr('aria-live','polite');
 		}
 
-		this.$element.addClass( buttonClasses.join( " " ) );
+		this.$element.addClass( this._buttonClasses.join( " " ) );
 
 		if ( options.role) {
 			this.$element.attr( "role", options.role );
@@ -105,9 +106,6 @@
 		if ( !this.hasTitle && options.hideText && !options.hideTitle ) {
 			this.$element.attr('title',this.$element.text());
 		}
-		if ( options.ripple && w.componentNamespace.Ripple ) {
-			new w.componentNamespace.Ripple( this.element ).init();
-		}
 		this.$element.trigger( "create." + name );
 	};
 
@@ -117,12 +115,37 @@
 	};
 
 	Button.prototype._isExpanded = function(state){
-		this._isPressed(state);
-		this.$element.attr( "aria-expanded", state );
+		this.isExpanded = state;
+		this.$element.attr( "aria-expanded", state )[ state ? "addClass" : "removeClass" ](utils.classes.isActive);
 	};
 
 	Button.prototype.controls = function(el){
 		this.$element.attr( "aria-controls", el );
+	};
+
+	Button.prototype.destroy = function(){
+		var options = this.options;
+
+		this.$element
+			.removeData(componentName)
+			.removeAttr('role')
+			.removeAttr('aria-pressed')
+			.removeAttr('aria-expanded')
+			.removeAttr('aria-controls')
+			.removeClass( this._buttonClasses.join( " " ) )
+			.removeClass( utils.classes.isActive)
+			.off("."+name);
+		if ( this.options.icon ) {
+			this.$element.find('[class^="'+this.options.iconFamily+'"]').remove();
+		}
+
+		if ( options.wrapText ) {
+			var btnHtml = this.$buttonText.html();
+			this.$element.empty().html(btnHtml);
+		}
+
+		this.element = null;
+		this.$element = null;
 	};
 
 	Button.prototype.defaults = {
@@ -140,8 +163,7 @@
 		iconFamily: "o-icon",
 		iconPosition: null,
 		pressed: false,
-		expanded: false,
-		ripple: false
+		expanded: false
 	};
 
 	Button.defaults = Button.prototype.defaults;
@@ -156,7 +178,7 @@
 
 	$.fn[ pluginName ] = function(){
 		return this.each( function(){
-			new w.componentNamespace.Button( this ).init();
+			new window.componentNamespace.Button( this ).init();
 		});
 	};
 

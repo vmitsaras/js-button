@@ -3,7 +3,7 @@
   "title": "js-Button",
   "main": "src/js-button.js",
   "description": "jQuery Plugin for progressively enhanced Buttons",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "homepage": "https://github.com/vmitsaras/js-button",
   "license": "MIT",
   "keywords": [
